@@ -1,9 +1,9 @@
-from django.urls import path
+from django.conf.urls import include, url
 
 from . import views
 
 urlpatterns = [
-    path('', views.index, name="index"),
-    path('', views.schedule, name="schedule"),
-    path('', views.memes, name="memes"),
+    url(r'^', views.index, name="index"),
+    url(r'^schedule', views.schedule, name="schedule"),
+    url(r'^memes', views.memes, name="memes"),
 ]

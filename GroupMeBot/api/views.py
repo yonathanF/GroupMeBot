@@ -1,3 +1,13 @@
 from django.shortcuts import render
 
-# Create your views here.
+
+def index(request):
+    raise NotImplementedError()
+
+
+def schedule(request):
+    raise NotImplementedError()
+
+
+def memes(request):
+    raise NotImplementedError()

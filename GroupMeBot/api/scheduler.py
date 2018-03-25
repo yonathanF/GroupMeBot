@@ -14,15 +14,6 @@ from datetime import datetime
 from .models import SimpleUser
 
 
-class Report:
-    ''' represents a report of time '''
-
-    def __init__(self, start_time, end_time, users):
-        self.start_time = start_time
-        self.end_time = end_time
-        self.users = users
-
-
 class Scheduler:
     ''' A wrapper for the scheduling algo '''
 
@@ -73,7 +64,7 @@ class Scheduler:
     def find_overlapping_days(self):
         ''' a function to find overlap between all the days specified '''
 
-        # day: [count, [users]]
+        # day: [count, [[user1, [time1, time2,]], [user2, []], ...]]
         days_of_week = [[0, []] for i in range(7)]
 
         # get count
@@ -85,22 +76,76 @@ class Scheduler:
                 # if data exists already, update it, don't overwrite it
                 if len(old_data[1]) != 0:
                     old_user_lst = old_data[1]
-                    old_user_lst.append(user)
+
+                    updated = False
+                    #check if user already exists
+                    for user_days in old_user_lst:
+                        if user_days[0] == user:
+                            user_days[1].append(open_date)
+                            updated = True
+                            break
+
+                    if not updated:
+                        user_entry = [user, [open_date]]
+                        old_user_lst.append(user_entry)
 
                     update_data = [old_data[0] + 1, old_user_lst]
                     days_of_week[start_date] = update_data
 
                 # if not, just write there
                 else:
-                    days_of_week[start_date] = [1, [user]]
+                    days_of_week[start_date] = [1, [[user, [open_date]]]]
 
-        # rank by count
-        ranked = sorted(days_of_week, key=lambda x: x[0], reverse=True)
+        return days_of_week
 
-        return ranked
+    def find_overlapping_hours(self, users):
+        ''' takes in a list of users , and finds a list of
+        overlapping hours between their days '''
 
-    def find_overlapping_hours(self, overlaping_days):
-        ''' takes in a list of overlapping days and finds a list of overlaping hours '''
+        # break the day into 15 min groups
+        # [ [ [user, [(start, end), (start, (end)]], [user, ...] ], [group 2..] ]
+        hours_groups = [[] for i in range(360)]
+
+        # find users that have start times within the same 15 min groups
+        for user in users:
+            for user_time in user[1]:
+                start_in_min = user_time[0].time().hour * 15
+                old_time_data = hours_groups[start_in_min]
+
+                # if there is data already
+                if len(old_time_data) == 0:
+                    current_user = [user, [user_time]]
+                    hours_groups[start_in_min] = current_user
+
+                # if there is some data there already
+                else:
+                    updated = False
+                    # try to find the user, it that user is in there already
+                    for existing_user in old_time_data:
+
+                        # if the user is here
+                        if existing_user[0] == user:
+                            # get the current data and append the new time
+                            current_data = existing_user[1]
+                            current_data.append(user_time)
+                            existing_user[1] = current_data
+
+                            # set flag and exist
+                            updated = True
+                            break
+
+                    # if the user is not in here already
+                    if not updated:
+                        # create an entry for the user and append it
+                        current_user = [user, [user_time]]
+                        (hours_groups[start_in_min]).append(current_user)
+
+        for index, hour in enumerate(hours_groups):
+            if hour:
+                print("-------------[group]" + str(index) + "]---------")
+                for user in hour:
+                    print(user)
+                    print("\n\n")
 
     def find_overlapping(self):
         ''' a function that tries to find an overlap in the specified list of times '''
@@ -110,7 +155,7 @@ class Scheduler:
         total_open_mins = self.convert_to_minutes(timeframe_meeting)
 
         # find overlaping days
-        overlaping_days = self.find_overlapp_days()
+        overlaping_days = self.find_overlapping_days()
 
         # find overlaping hours
 

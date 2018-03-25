@@ -14,7 +14,11 @@
     <title>GroupMe Bot Calendar</title>
   </head>
   <body>
-    <button type="button" id="btncl" onclick="sendMessage()">Send Messages!</button>
+    <!-- <a href="http://localhost:8000/mess">Send Messages!</a> -->
+    <!-- <button type="button" id="btncl" onclick="https://localhost:8000/mess">Send Messages!</button> -->
+    <form action="http://localhost:8000/mess">
+      <input type="submit" value="Send Messages!" />
+    </form>
     <div id="myModal" class="modal">
 
       <!-- Modal content -->
@@ -82,9 +86,8 @@
     </table>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="{% static 'bundle.js' %}"></script>
     <script type="text/javascript" src="{% static 'polls/index.js' %}"></script>
-    <script type="text/javascript" src="{% static 'polls/sendsms.js' %}"></script>
+    <!-- <script type="text/javascript" src="{% static 'polls/sendsms.js' %}"></script> -->
 
 
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

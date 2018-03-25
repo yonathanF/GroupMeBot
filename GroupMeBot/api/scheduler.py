@@ -114,7 +114,7 @@ class Scheduler:
 
                 # if there is data already
                 if len(old_time_data) == 0:
-                    current_user = [user, [user_time]]
+                    current_user = [[user[0], [user_time]]]
                     hours_groups[start_in_min] = current_user
 
                 # if there is some data there already
@@ -122,30 +122,54 @@ class Scheduler:
                     updated = False
                     # try to find the user, it that user is in there already
                     for existing_user in old_time_data:
-
                         # if the user is here
-                        if existing_user[0] == user:
+                        if existing_user[0] == user[0]:
                             # get the current data and append the new time
                             current_data = existing_user[1]
                             current_data.append(user_time)
                             existing_user[1] = current_data
-
-                            # set flag and exist
+                            # set flag and exist loop
                             updated = True
                             break
 
                     # if the user is not in here already
                     if not updated:
                         # create an entry for the user and append it
-                        current_user = [user, [user_time]]
-                        (hours_groups[start_in_min]).append(current_user)
+                        current_user = [user[0], [user_time]]
+                        hours_groups[start_in_min].append(current_user)
 
         return hours_groups
 
-    def check_length_of_open_time(self, open_times):
-        pass
+    def check_length_of_open_time(self, open_times, meeting_offset):
+        ''' takes in a 15 min chunk and checks if those
+        who can make the meeting at that time can stay
+        for the full length '''
 
-    def find_perfect_overlapps(self, overlapping_hours):
+        for time in open_times:
+            # check all lengths
+            can_attend_full = False
+            for time_user in time[1]:
+                time_difference = time_user[1] - time_user[0]
+                difference_mins = self.convert_to_minutes(time_difference)
+
+                # if the user can stay for that amoung of longer, set flag
+                if difference_mins >= self.meeting_length - meeting_offset:
+                    can_attend_full = True
+
+            # if none of the times for a give user can enable them
+            # to stay long enough, return false
+            if not can_attend_full:
+                return False
+
+        # everyone can make it otherwise
+        return True
+
+    def find_perfect_overlapps(self,
+                               overlapping_hours,
+                               missing_people=0,
+                               meeting_offset=0):
+        ''' takes in a list of users and their times
+        and picks perfect hours '''
 
         # get the number of attendees
         number_of_attendees = len(self.users_open_times)
@@ -155,16 +179,47 @@ class Scheduler:
             for fifteen_min in overlapping_hours[day]:
                 # if we have everyone at the start, check if the can make the whole
                 # meeting
-                if len(fifteen_min) == number_of_attendees:
-                    if self.check_length_of_open_time:
+                if len(fifteen_min) >= (number_of_attendees - missing_people):
+                    if self.check_length_of_open_time(fifteen_min,
+                                                      meeting_offset):
                         perfect_overlapps.append(fifteen_min)
 
-    def find_overlapping(self):
-        ''' a function that tries to find an overlap in the specified list of times '''
+        return perfect_overlapps
+
+    def merge_closest(self, overlapping_hours, degree=1):
+        ''' merges closest two into one block to suggest a meeting date
+        that might diverge from the original by up to x  mins '''
+
+        # starts from the top and merges closest two until end
+        for day in overlapping_hours:
+            for min_chunk in overlapping_hours[day]:
+                if min_chunk:
+                    raise NotImplementedError("Didn't have time.")
+
+    def generate_report(self, overlap):
+        report = "Consider the following options:\n"
+        for user in overlap[0]:
+            report += "\t" + str(
+                (user[1][0][0]).strftime("%c")) + " To " + str(
+                    (user[1][0][1]).strftime("%c")) + "\n"
+
+            report += "\n Would you like more options?\n"
+
+            return report
+
+    def find_overlapping(self, overlap_type):
+        ''' the entry point into the scheduling algorithm.
+        Returns a dictionary as with time/date pair + ranking for that
+        meeting block. If there is a tie, it will randmoly pick between the tied
+        options and enable a boolean for tied.
+
+        If not common time block is found, it will create blocks such that the
+        smallest number of people are missing from the meeting. This will affect the
+        ranking, but the format will be the same.
+        '''
 
         # get the meeting timeframe in minutes
         timeframe_meeting = self.timeframe_end - self.timeframe_start
-        total_open_mins = self.convert_to_minutes(timeframe_meeting)
 
         # find overlaping days
         overlaping_days = self.find_overlapping_days()
@@ -176,17 +231,27 @@ class Scheduler:
                 days_overlapping_hours = self.find_overlapping_hours(day[1])
                 overlapping_hours[index] = days_overlapping_hours
 
-        return timeframe_meeting
+        if overlap_type == "perfect":
+            # find perfect overlaps
+            perfect_overlaps = self.find_perfect_overlapps(overlapping_hours)
+            return self.generate_report(perfect_overlaps)
 
-    def schedule(self):
-        ''' the entry point into the scheduling algorithm.
-        Returns a dictionary as with time/date pair + ranking for that
-        meeting block. If there is a tie, it will randmoly pick between the tied
-        options and enable a boolean for tied.
+        elif overlap_type == "missing_one":
+            # find perfect overlaps with 1 person missing
+            missing_one = self.find_perfect_overlapps(overlapping_hours, 1, 1)
+            return self.generate_report(missing_one)
 
-        If not common time block is found, it will create blocks such that the
-        smallest number of people are missing from the meeting. This will affect the
-        ranking, but the format will be the same.
-        '''
+        elif overlap_type == "missing_two":
+            # find perfect overlaps with 2 people missing
+            missing_two = self.find_perfect_overlapps(overlapping_hours, 2)
+            return self.generate_report(missing_two)
 
-        raise NotImplementedError()
+        elif overlap_type == "15_shorter":
+            # find perfect overlaps if the meeting is 15 mins shorter
+            shorter_15 = self.find_perfect_overlapps(overlapping_hours, 0, 15)
+            return self.generate_report(shorter_15)
+
+        elif overlap_type == "30_shorter":
+            # perfect overlaps if meeting is 30 mins shortter
+            shorter_30 = self.find_perfect_overlapps(overlapping_hours, 0, 30)
+            return self.generate_report(shorter_30)

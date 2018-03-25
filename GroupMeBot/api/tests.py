@@ -15,20 +15,22 @@ class SchedulerAlgoTests(TestCase):
         self.next_year = datetime(2019, 3, 31)
 
         user1_id = "abc123"
-        user1_start = datetime(2018, 3, 19, 9, 20)
-        user1_end = datetime(2018, 3, 19, 13, 30)
+        user1_start = datetime(2018, 3, 19, 10, 20)
+        user1_end = datetime(2018, 3, 19, 12, 30)
 
         user2_id = "abc456"
         user2_start = datetime(2018, 3, 19, 10, 20)
         user2_end = datetime(2018, 3, 19, 13, 30)
 
         user3 = 'niceid'
-        user3_start = datetime(2018, 3, 20, 10, 20)
-        user3_end = datetime(2018, 3, 20, 13, 30)
+        user3_start = datetime(2018, 3, 19, 10, 20)
+        user3_end = datetime(2018, 3, 20, 15, 30)
+
+        user2_end_bad = datetime(2018, 3, 19, 10, 30)
 
         self.user_list = {
             user1_id: [(user1_start, user1_end)],
-            user2_id: [(user2_start, user2_end)],
+            user2_id: [(user2_start, user2_end), (user2_start, user2_end_bad)],
             user3: [(user3_start, user3_end), (user2_start, user2_end)]
         }
 
@@ -74,4 +76,5 @@ class SchedulerAlgoTests(TestCase):
         ''' tests a list of date with perfect overlaps '''
 
         scheduler = Scheduler(self.today, self.next_week, 60, self.user_list)
-        overlaps = scheduler.find_overlapping()
+        overlaps = scheduler.find_overlapping("missing_two")
+        print(overlaps)

@@ -140,12 +140,24 @@ class Scheduler:
                         current_user = [user, [user_time]]
                         (hours_groups[start_in_min]).append(current_user)
 
-        for index, hour in enumerate(hours_groups):
-            if hour:
-                print("-------------[group]" + str(index) + "]---------")
-                for user in hour:
-                    print(user)
-                    print("\n\n")
+        return hours_groups
+
+    def check_length_of_open_time(self, open_times):
+        pass
+
+    def find_perfect_overlapps(self, overlapping_hours):
+
+        # get the number of attendees
+        number_of_attendees = len(self.users_open_times)
+
+        perfect_overlapps = []
+        for day in overlapping_hours:
+            for fifteen_min in overlapping_hours[day]:
+                # if we have everyone at the start, check if the can make the whole
+                # meeting
+                if len(fifteen_min) == number_of_attendees:
+                    if self.check_length_of_open_time:
+                        perfect_overlapps.append(fifteen_min)
 
     def find_overlapping(self):
         ''' a function that tries to find an overlap in the specified list of times '''
@@ -157,10 +169,12 @@ class Scheduler:
         # find overlaping days
         overlaping_days = self.find_overlapping_days()
 
+        overlapping_hours = {}
         # find overlaping hours
-
-        # partition the time between timeframe start and
-        # timeframe end into meeting_length
+        for index, day in enumerate(overlaping_days):
+            if day[0] != 0:
+                days_overlapping_hours = self.find_overlapping_hours(day[1])
+                overlapping_hours[index] = days_overlapping_hours
 
         return timeframe_meeting
 

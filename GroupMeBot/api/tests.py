@@ -70,11 +70,8 @@ class SchedulerAlgoTests(TestCase):
 
         overlapping_hours = scheduler.find_overlapping_hours(day1)
 
-        print("----------------in test------------------")
-        print(day1)
-
     def test_perfect_overlap(self):
         ''' tests a list of date with perfect overlaps '''
 
-        scheduler = Scheduler(self.today, self.next_week, 60)
-        # overlaps = scheduler.find_overlap()
+        scheduler = Scheduler(self.today, self.next_week, 60, self.user_list)
+        overlaps = scheduler.find_overlapping()

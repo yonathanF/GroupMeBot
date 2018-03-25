@@ -11,3 +11,7 @@ def schedule(request):
 
 def memes(request):
     raise NotImplementedError()
+
+
+def callback(request):
+    raise NotImplementedError()
